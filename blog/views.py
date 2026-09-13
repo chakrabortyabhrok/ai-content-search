@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from core.forms import ContactForm
-from .models import Post, Category
+from .models import Post, Category, Author, Tag
 
 def home_page(request):
     return render(request, 'blog/home.html')
@@ -46,3 +46,4 @@ def contact_page(request):
     else:
         form = ContactForm()
     return render(request, 'blog/contact.html', {'form':form})
+
