@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from core.forms import ContactForm
-from .models import Post, Category, Author, Tag
+from .models import Post, Category
 
 def home_page(request):
     return render(request, 'blog/home.html')
