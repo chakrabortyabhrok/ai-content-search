@@ -22,11 +22,7 @@ class Author(models.Model):
     bio = models.TextField(max_length=500, null=True, blank=True)
 
     user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="author",
-        null=True,
-        blank=True
+        User, on_delete=models.CASCADE, related_name="author", null=True, blank=True
     )
 
     def __str__(self):
@@ -78,7 +74,39 @@ class Post(models.Model):
         default="draft",
     )
 
-    tags = models.ManyToManyField(Tag, blank=True)
+    TAG_CHOICES = [
+        ("investment", "Investment"),
+        ("personal-finance", "Personal Finance"),
+        ("real-estate", "Real Estate"),
+        ("cryptocurrency", "Cryptocurrency"),
+        ("entrepreneurship", "Entrepreneurship"),
+        ("technology", "Technology"),
+        ("software-development", "Software Development"),
+        ("artificial-intelligence", "Artificial Intelligence"),
+        ("cybersecurity", "Cybersecurity"),
+        ("health-wellness", "Health & Wellness"),
+        ("fitness", "Fitness"),
+        ("diet-nutrition", "Diet & Nutrition"),
+        ("mental-health", "Mental Health"),
+        ("lifestyle", "Lifestyle"),
+        ("travel", "Travel"),
+        ("food-cooking", "Food & Cooking"),
+        ("productivity", "Productivity"),
+        ("career", "Career"),
+        ("marketing", "Marketing"),
+        ("design", "Design"),
+        ("education", "Education"),
+        ("parenting", "Parenting"),
+        ("sustainability", "Sustainability"),
+        ("entertainment", "Entertainment"),
+        ("books-literature", "Books & Literature"),
+    ]
+
+    tags = models.ManyToManyField(
+        Tag,
+        blank=True,
+        choices=TAG_CHOICES,
+    )
 
     def __str__(self):
 
