@@ -105,7 +105,7 @@ class Post(models.Model):
     tags = models.ManyToManyField(
         Tag,
         blank=True,
-        choices=TAG_CHOICES,
+        related_name='posts',
     )
 
     def __str__(self):

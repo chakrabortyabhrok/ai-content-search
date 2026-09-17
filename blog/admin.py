@@ -13,22 +13,22 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ["title", "category", "published_date", "author", "status"]
-    search_fields = ["title", "excerpt", "content", "author", "status"]
+    search_fields = ["title", "excerpt", "content", "status"]
     list_filter = ["category", "published_date", "status"]
     prepopulated_fields = {"slug": ("title",)}
+    filter_horizontal = ("tags",)
 
     fieldsets = [
         ("Basic Information", {"fields": ("title", "slug", "category", "author")}),
         ("Content", {"fields": ("excerpt", "content")}),
         ("Publishing", {"fields": ("published_date",), "classes": ("collapse",)}),
-        ("Status", {"fields": (f"{Post.status}",), "classes": ("collapse",)}),
-        ("Tags", {"fields": (f"{Post.tags}")}),
+        ("Status", {"fields": ("status",), "classes": ("collapse",)}),
+        ("Tags", {"fields": ("tags",), "classes": ("collapse",)}),
     ]
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ["name"]
     search_fields = ["name", "slug"]
     prepopulated_fields = {"slug": ("name",)}
     ordering = [
@@ -37,17 +37,18 @@ class TagAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.annotate(post_count=Count("post"))
+        return queryset.annotate(post_count=Count("posts"))
 
     @admin.display(ordering="post_count", description="Total Posts")
     def get_post_count(self, obj):
         return obj.post_count
+
+    list_display = ["name", "slug", "get_post_count"]
 
 
 @admin.register(Author)
 class Authoradmin(admin.ModelAdmin):
     list_display = ["name", "email", "bio"]
     search_fields = ["name"]
-    list_filter = ["name"]
 
     # readonly_fields = ["bio"]
