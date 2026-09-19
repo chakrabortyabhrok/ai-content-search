@@ -18,6 +18,6 @@ class PostViewSet(ModelViewSet):
     pagination_class = StandardPagnition
     
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['title', 'excerpt', 'content']
-    filterset_fields = ['category', 'author']
+    search_fields = ['title', 'excerpt', 'content', 'author']
+    filterset_fields = ['category', 'author', 'tags']
     lookup_field = 'slug'

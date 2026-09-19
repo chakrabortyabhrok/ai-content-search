@@ -13,8 +13,8 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ["title", "category", "published_date", "author", "status"]
-    search_fields = ["title", "excerpt", "content", "status"]
-    list_filter = ["category", "published_date", "status"]
+    search_fields = ["title", "excerpt", "content", "status", "author", "tags"]
+    list_filter = ["category", "published_date", "status", "author", "tags"]
     prepopulated_fields = {"slug": ("title",)}
     filter_horizontal = ("tags",)
 
@@ -23,7 +23,7 @@ class PostAdmin(admin.ModelAdmin):
         ("Content", {"fields": ("excerpt", "content")}),
         ("Publishing", {"fields": ("published_date",), "classes": ("collapse",)}),
         ("Status", {"fields": ("status",), "classes": ("collapse",)}),
-        ("Tags", {"fields": ("tags",), "classes": ("collapse",)}),
+        ("Tags", {"fields": ("tags",)}),
     ]
 
 

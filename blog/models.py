@@ -53,7 +53,7 @@ class Post(models.Model):
     content = models.TextField()
 
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name="posts", null=True, blank=True
+        Category, on_delete=models.SET_NULL, related_name="posts", null=True, blank=False
     )
 
     published_date = models.DateTimeField(null=True, blank=True)
@@ -73,34 +73,6 @@ class Post(models.Model):
         choices=STATUS_CHOICES,
         default="draft",
     )
-
-    TAG_CHOICES = [
-        ("investment", "Investment"),
-        ("personal-finance", "Personal Finance"),
-        ("real-estate", "Real Estate"),
-        ("cryptocurrency", "Cryptocurrency"),
-        ("entrepreneurship", "Entrepreneurship"),
-        ("technology", "Technology"),
-        ("software-development", "Software Development"),
-        ("artificial-intelligence", "Artificial Intelligence"),
-        ("cybersecurity", "Cybersecurity"),
-        ("health-wellness", "Health & Wellness"),
-        ("fitness", "Fitness"),
-        ("diet-nutrition", "Diet & Nutrition"),
-        ("mental-health", "Mental Health"),
-        ("lifestyle", "Lifestyle"),
-        ("travel", "Travel"),
-        ("food-cooking", "Food & Cooking"),
-        ("productivity", "Productivity"),
-        ("career", "Career"),
-        ("marketing", "Marketing"),
-        ("design", "Design"),
-        ("education", "Education"),
-        ("parenting", "Parenting"),
-        ("sustainability", "Sustainability"),
-        ("entertainment", "Entertainment"),
-        ("books-literature", "Books & Literature"),
-    ]
 
     tags = models.ManyToManyField(
         Tag,
