@@ -53,7 +53,11 @@ class Post(models.Model):
     content = models.TextField()
 
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name="posts", null=True, blank=False
+        Category,
+        on_delete=models.SET_NULL,
+        related_name="posts",
+        null=True,
+        blank=False,
     )
 
     published_date = models.DateTimeField(null=True, blank=True)
@@ -77,7 +81,7 @@ class Post(models.Model):
     tags = models.ManyToManyField(
         Tag,
         blank=True,
-        related_name='posts',
+        related_name="posts",
     )
 
     def __str__(self):
