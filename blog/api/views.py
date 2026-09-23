@@ -5,36 +5,12 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+from ..filters import CategoryFilterSet
 
 class StandardPagnition(PageNumberPagination):
     page_size = 5
     page_size_query_param = "page_size"
     max_page_size = 10
-
-
-class CategoryViewSet(ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ["name"]
-    filterset_fields = ["name"]
-    lookup_field = "slug"
-
-class TagViewSet(ModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ["name"]
-    filterset_fields = ["name"]
-    lookup_field = "slug"
-
-
-class CategoryFilterSet(django_filters.FilterSet):
-
-    category = django_filters.CharFilter(
-        field_name='category__slug',lookup_expr='icontains'
-    )
-
 class PostViewSet(ModelViewSet):
 
     serializer_class = PostSerializer
@@ -53,3 +29,20 @@ class PostViewSet(ModelViewSet):
             return Post.objects.all()
 
         return Post.objects.filter(status="published")
+
+class CategoryViewSet(ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ["name"]
+    filterset_fields = ["name"]
+    lookup_field = "slug"
+
+class TagViewSet(ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ["name"]
+    filterset_fields = ["name"]
+    lookup_field = "slug"
+
