@@ -18,6 +18,7 @@ class Category(models.Model):
 
 class Author(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
+    # slug = models.SlugField(max_length=100, unique=True)
     email = models.EmailField(null=True, blank=True)
     bio = models.TextField(max_length=500, null=True, blank=True)
 

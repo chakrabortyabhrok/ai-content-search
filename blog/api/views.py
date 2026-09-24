@@ -1,6 +1,6 @@
 import django_filters
 from blog.models import Post, Category, Tag, Author
-from blog.serializers import PostSerializer, CategorySerializer, TagSerializer
+from blog.serializers import PostSerializer, CategorySerializer, TagSerializer, AuthorSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
@@ -51,3 +51,10 @@ class TagViewSet(ModelViewSet):
     filterset_fields = ["name"]
     lookup_field = "slug"
 
+class AuthorViewSet(ModelViewSet):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+    filter_backends = [DjangoFilterBackend]
+    search_fields = ["name"]
+    filterset_fields = ["name"]
+    lookup_field = "name"
