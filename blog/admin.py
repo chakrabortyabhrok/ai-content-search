@@ -13,7 +13,7 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ["title", "category", "published_date", "author", "status"]
-    search_fields = ["title", "excerpt", "content", "status", "author", "tags"]
+    search_fields = ["title", "excerpt", "content", "status", "author__name", "category__name", "tags__name"]
     list_filter = ["category", "published_date", "status", "author", "tags"]
     prepopulated_fields = {"slug": ("title",)}
     filter_horizontal = ("tags",)
