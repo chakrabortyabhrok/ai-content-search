@@ -25,7 +25,6 @@ class PostAdmin(admin.ModelAdmin):
         ("Tags", {"fields": ("tags",)}),
     ]
 
-
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     search_fields = ["name", "slug"]
@@ -44,10 +43,7 @@ class TagAdmin(admin.ModelAdmin):
 
     list_display = ["name", "slug", "get_post_count"]
 
-
 @admin.register(Author)
 class Authoradmin(admin.ModelAdmin):
     list_display = ["name", "email", "bio"]
     search_fields = ["name"]
-
-    # readonly_fields = ["bio"]
