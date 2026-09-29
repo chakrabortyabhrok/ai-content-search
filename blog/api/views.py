@@ -19,14 +19,12 @@ class PostViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["title", "excerpt", "content", "author__name"]
     filterset_class = CategoryFilterSet
-
-    # filterset_fields = ["category__slug", "author__name", "tags__slug"]
     lookup_field = "slug"
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated and user.is_staff:
-            return Post.objects.all().select_related('category', 'author').prefetch_related('tags')
+        # user = self.request.user
+        # if user.is_authenticated and user.is_staff:
+        #     return Post.objects.all().select_related('category', 'author').prefetch_related('tags')
 
         return (
             Post.objects.filter(status="published")

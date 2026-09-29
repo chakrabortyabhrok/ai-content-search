@@ -1,5 +1,7 @@
+from django.conf import settings
+
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from core.forms import ContactForm
 from .models import Post, Category
 
@@ -13,18 +15,19 @@ def about_page(request):
 
 
 def blog_list(request):
+    categories = Category.objects.all()
     category_slug = request.GET.get("category")
 
-    categories = Category.objects.all()
+    # Fetch all published posts ordered by published_date
+    posts = Post.objects.filter(status="published").order_by("-published_date")
+    current_category = None
 
     if category_slug:
-        current_category = Category.objects.get(slug=category_slug)
-        posts = Post.objects.filter(category=current_category).order_by(
-            "-published_date"
-        )
-    else:
-        current_category = None
-        posts = Post.objects.all().order_by("-published_date")
+        current_category = get_object_or_404(Category, slug=category_slug)
+        posts = posts.filter(category=current_category)
+
+    # Temporary print to verify count in server logs
+    print(f"--> VIEW CHECK: Total published posts fetched = {posts.count()}")
 
     return render(
         request,
@@ -35,7 +38,6 @@ def blog_list(request):
             "current_category": current_category,
         },
     )
-
 
 def post_detail(request, slug):
     try:
