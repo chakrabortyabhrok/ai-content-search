@@ -18,16 +18,12 @@ def blog_list(request):
     categories = Category.objects.all()
     category_slug = request.GET.get("category")
 
-    # Fetch all published posts ordered by published_date
     posts = Post.objects.filter(status="published").order_by("-published_date")
     current_category = None
 
     if category_slug:
         current_category = get_object_or_404(Category, slug=category_slug)
         posts = posts.filter(category=current_category)
-
-    # Temporary print to verify count in server logs
-    print(f"--> VIEW CHECK: Total published posts fetched = {posts.count()}")
 
     return render(
         request,
