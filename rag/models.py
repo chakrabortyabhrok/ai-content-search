@@ -6,7 +6,7 @@ class Sentence(models.Model):
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,  # delete post: its chunks auto-delete
-        related_name="sentences",  # lets you write post.sentences.all()
+        related_name="sentences",  # lets write post.sentences.all()
     )
     para_index = models.IntegerField()  # which paragraph (0, 1, 2, ...)
     sent_index = models.IntegerField()  # which sentence in it (0, 1, 2, ...)
