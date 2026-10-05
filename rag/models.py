@@ -5,7 +5,7 @@ from blog.models import Post
 class Sentence(models.Model):
     post = models.ForeignKey(
         Post,
-        on_delete=models.CASCADE,  # delete post: its chunks auto-delete
+        on_delete=models.CASCADE,  # delete post: its chunks also deleted
         related_name="sentences",  # lets write post.sentences.all()
     )
     para_index = models.IntegerField()  # which paragraph (0, 1, 2, ...)
@@ -26,4 +26,4 @@ class Sentence(models.Model):
         ordering = ["para_index", "sent_index"]
 
     def __str__(self):
-        return f"{self.post.title}: p{self.para_index}s{self.sent_index}"
+        return f"{self.post.title}: para:{self.para_index}se{self.sent_index}"
