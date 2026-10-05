@@ -25,8 +25,7 @@ MIN_WORDS = 4
 
 
 def split_sentences(paragraph: str) -> list[str]:
-    """Split one paragraph into sentences. Not perfect on purpose —
-    the Week 36 eval tells us which mistakes actually matter."""
+    """Split one paragraph into sentences. Not perfect on purpose"""
     pieces = [p.strip() for p in SENT_SPLIT.split(paragraph) if p.strip()]
 
     merged = []
@@ -52,8 +51,8 @@ def split_post(content: str) -> list[dict]:
     Each chunk: {text, para_index, sent_index, section, is_code}"""
     chunks = []
 
-    # 1. Pull code blocks out FIRST so nothing ever splits them.
-    #    Replaces with placeholders so positions stay stable.
+    # Pulls code blocks out FIRST so nothing ever splits them.
+    # Replaces with placeholders so positions stay stable.
     code_blocks = []
 
     def stash(match):
@@ -65,19 +64,19 @@ def split_post(content: str) -> list[dict]:
     section = ""
     para_index = 0
 
-    # 2. Paragraphs = blank-line separated
+    # Paragraphs = blank-line separated
     for para in PARA_SPLIT.split(content):
         para = para.strip()
         if not para:
             continue
 
-        # 3. Heading → context for the NEXT sentences, not a chunk itself
+        # Heading → context for the NEXT sentences, not a chunk itself
         if HEADING.match(para):
             section = para.lstrip("#").strip()
             para_index += 1
             continue
 
-        # 4. A paragraph that IS a code block → one atomic chunk
+        # A paragraph that IS a code block → one atomic chunk
         if re.fullmatch(r"CODEBLOCK_\d+", para):
             idx = int(para.split("_")[1])
             chunks.append(
@@ -92,7 +91,7 @@ def split_post(content: str) -> list[dict]:
             para_index += 1
             continue
 
-        # 5. Normal paragraph → sentence chunks
+        # Normal paragraph → sentence chunks
         for sent_index, sentence in enumerate(split_sentences(para)):
             chunks.append(
                 {
