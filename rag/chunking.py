@@ -23,6 +23,7 @@ SENT_SPLIT = re.compile(r'(?<=[.!?…])["\')\]]?\s+(?=["\'(\[]?[A-Z0-9])')
 
 MIN_WORDS = 4
 
+
 def split_sentences(paragraph: str) -> list[str]:
     """Split one paragraph into sentences. Not perfect on purpose"""
     pieces = [p.strip() for p in SENT_SPLIT.split(paragraph) if p.strip()]

@@ -8,9 +8,9 @@ class Sentence(models.Model):
         on_delete=models.CASCADE,  # delete post: its chunks also deleted
         related_name="sentences",  # lets write post.sentences.all()
     )
-    para_index = models.IntegerField()  # which paragraph (0, 1, 2, ...)
-    sent_index = models.IntegerField()  # which sentence in it (0, 1, 2, ...)
-    text = models.TextField()  # the sentence itself : what we cite later
+    para_index = models.IntegerField()  
+    sent_index = models.IntegerField()  
+    text = models.TextField()  # the citation sentence itself
     section = models.CharField(max_length=200, blank=True)  # last heading above it
     is_code = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
