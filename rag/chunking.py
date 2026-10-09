@@ -24,26 +24,68 @@ SENT_SPLIT = re.compile(r'(?<=[.!?…])["\')\]]?\s+(?=["\'(\[]?[A-Z0-9])')
 MIN_WORDS = 4
 
 
+# def split_sentences(paragraph: str) -> list[str]:
+#     """Split one paragraph into sentences. Not perfect on purpose"""
+#     pieces = [p.strip() for p in SENT_SPLIT.split(paragraph) if p.strip()]
+
+#     merged = []
+#     for piece in pieces:
+#         if merged:
+#             last = re.findall(r"[\w.]+$", merged[-1])
+#             if last and last[0].rstrip(".").lower() in ABBREVIATIONS:
+#                 merged[-1] += " " + piece
+#                 continue
+#         merged.append(piece)
+
+#     sentences = []
+#     for piece in merged:
+#         if sentences and len(piece.split()) < MIN_WORDS:
+#             sentences[-1] += " " + piece
+#         else:
+#             sentences.append(piece)
+#     return sentences
+
+
 def split_sentences(paragraph: str) -> list[str]:
-    """Split one paragraph into sentences. Not perfect on purpose"""
-    pieces = [p.strip() for p in SENT_SPLIT.split(paragraph) if p.strip()]
+    """Split a paragraph into sentences, handling abbreviations and short fragments."""
 
-    merged = []
-    for piece in pieces:
-        if merged:
-            last = re.findall(r"[\w.]+$", merged[-1])
-            if last and last[0].rstrip(".").lower() in ABBREVIATIONS:
-                merged[-1] += " " + piece
-                continue
-        merged.append(piece)
+    # Step 1: Split paragraph into fragments (by periods)
+    fragments = [p.strip() for p in SENT_SPLIT.split(paragraph) if p.strip()]
 
-    sentences = []
-    for piece in merged:
-        if sentences and len(piece.split()) < MIN_WORDS:
-            sentences[-1] += " " + piece
+    # Step 2: Merge fragments that belong to the same sentence (fix abbreviations)
+    merged_fragments = []
+    for fragment in fragments:
+        if merged_fragments:
+            last_fragment = merged_fragments[-1]
+            
+            # Grab the last word + any trailing dots (e.g., "Mr." → ["Mr."])
+            trailing_match = re.findall(r"[\w.]+$", last_fragment)
+
+            if trailing_match:
+                last_word = trailing_match[0].rstrip(".").lower()
+                
+                # If it's an abbreviation, stitch this fragment onto the previous one
+                if last_word in ABBREVIATIONS:
+                    merged_fragments[-1] += " " + fragment
+                    continue
+
+        # Otherwise, treat this as a new fragment
+        merged_fragments.append(fragment)
+
+    # Step 3: Merge very short fragments into the previous sentence
+    final_sentences = []
+    for fragment in merged_fragments:
+        word_count = len(fragment.split())
+
+        if final_sentences and word_count < MIN_WORDS:
+            
+            # This fragment is too short on its own → attach to previous sentence
+            final_sentences[-1] += " " + fragment
         else:
-            sentences.append(piece)
-    return sentences
+            # Otherwise, keep it as its own sentence
+            final_sentences.append(fragment)
+
+    return final_sentences
 
 
 def split_post(content: str) -> list[dict]:
