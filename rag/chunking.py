@@ -57,13 +57,13 @@ def split_sentences(paragraph: str) -> list[str]:
     for fragment in fragments:
         if merged_fragments:
             last_fragment = merged_fragments[-1]
-            
+
             # Grab the last word + any trailing dots (e.g., "Mr." → ["Mr."])
             trailing_match = re.findall(r"[\w.]+$", last_fragment)
 
             if trailing_match:
                 last_word = trailing_match[0].rstrip(".").lower()
-                
+
                 # If it's an abbreviation, stitch this fragment onto the previous one
                 if last_word in ABBREVIATIONS:
                     merged_fragments[-1] += " " + fragment
@@ -78,7 +78,7 @@ def split_sentences(paragraph: str) -> list[str]:
         word_count = len(fragment.split())
 
         if final_sentences and word_count < MIN_WORDS:
-            
+
             # This fragment is too short on its own → attach to previous sentence
             final_sentences[-1] += " " + fragment
         else:

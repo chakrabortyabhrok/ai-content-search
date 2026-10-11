@@ -35,6 +35,7 @@ def blog_list(request):
         },
     )
 
+
 def post_detail(request, slug):
     try:
         post = Post.objects.get(slug=slug)
