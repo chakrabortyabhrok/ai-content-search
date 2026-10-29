@@ -67,6 +67,7 @@ WSGI_APPLICATION = "blog-project.wsgi.application"
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
+# 1. Setup normal databases first (Neon DB or Local Postgres)
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.config(
@@ -84,6 +85,16 @@ else:
             "PASSWORD": os.getenv("DB_PASSWORD"),
             "HOST": os.getenv("DB_HOST", "localhost"),
             "PORT": os.getenv("DB_PORT", "5432"),
+        }
+    }
+
+# 2. Force SQLite in-memory for tests AFTER setting up default databases
+import sys
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
         }
     }
 
