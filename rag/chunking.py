@@ -24,35 +24,13 @@ SENT_SPLIT = re.compile(r'(?<=[.!?…])["\')\]]?\s+(?=["\'(\[]?[A-Z0-9])')
 MIN_WORDS = 4
 
 
-# def split_sentences(paragraph: str) -> list[str]:
-#     """Split one paragraph into sentences. Not perfect on purpose"""
-#     pieces = [p.strip() for p in SENT_SPLIT.split(paragraph) if p.strip()]
-
-#     merged = []
-#     for piece in pieces:
-#         if merged:
-#             last = re.findall(r"[\w.]+$", merged[-1])
-#             if last and last[0].rstrip(".").lower() in ABBREVIATIONS:
-#                 merged[-1] += " " + piece
-#                 continue
-#         merged.append(piece)
-
-#     sentences = []
-#     for piece in merged:
-#         if sentences and len(piece.split()) < MIN_WORDS:
-#             sentences[-1] += " " + piece
-#         else:
-#             sentences.append(piece)
-#     return sentences
-
-
 def split_sentences(paragraph: str) -> list[str]:
     """Split a paragraph into sentences, handling abbreviations and short fragments."""
 
-    # Step 1: Split paragraph into fragments (by periods)
+    # 1: Split paragraph into fragments (by periods)
     fragments = [p.strip() for p in SENT_SPLIT.split(paragraph) if p.strip()]
 
-    # Step 2: Merge fragments that belong to the same sentence (fix abbreviations)
+    # 2: Merge fragments that belong to the same sentence (fix abbreviations)
     merged_fragments = []
     for fragment in fragments:
         if merged_fragments:
@@ -72,7 +50,7 @@ def split_sentences(paragraph: str) -> list[str]:
         # Otherwise, treat this as a new fragment
         merged_fragments.append(fragment)
 
-    # Step 3: Merge very short fragments into the previous sentence
+    # 3: Merge very short fragments into the previous sentence
     final_sentences = []
     for fragment in merged_fragments:
         word_count = len(fragment.split())
