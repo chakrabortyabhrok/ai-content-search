@@ -58,7 +58,7 @@ def split_sentences(paragraph: str) -> list[str]:
         if merged_fragments:
             last_fragment = merged_fragments[-1]
 
-            # Grab the last word + any trailing dots (e.g., "Mr." → ["Mr."])
+            # Grab the last word + any trailing dots (e.g., "Mr." -> ["Mr."])
             trailing_match = re.findall(r"[\w.]+$", last_fragment)
 
             if trailing_match:
@@ -79,7 +79,7 @@ def split_sentences(paragraph: str) -> list[str]:
 
         if final_sentences and word_count < MIN_WORDS:
 
-            # This fragment is too short on its own → attach to previous sentence
+            # This fragment is too short on its own -> attach to previous sentence
             final_sentences[-1] += " " + fragment
         else:
             # Otherwise, keep it as its own sentence
@@ -89,7 +89,7 @@ def split_sentences(paragraph: str) -> list[str]:
 
 
 def split_post(content: str) -> list[dict]:
-    """Post content in → list of chunks out.
+    """Post content in -> list of chunks out.
     Each chunk: {text, para_index, sent_index, section, is_code}"""
     chunks = []
 
@@ -112,13 +112,13 @@ def split_post(content: str) -> list[dict]:
         if not para:
             continue
 
-        # Heading → context for the NEXT sentences, not a chunk itself
+        # Heading -> context for the NEXT sentences, not a chunk itself
         if HEADING.match(para):
             section = para.lstrip("#").strip()
             para_index += 1
             continue
 
-        # A paragraph that IS a code block → one atomic chunk
+        # A paragraph that IS a code block -> one atomic chunk
         if re.fullmatch(r"CODEBLOCK_\d+", para):
             idx = int(para.split("_")[1])
             chunks.append(
@@ -133,7 +133,7 @@ def split_post(content: str) -> list[dict]:
             para_index += 1
             continue
 
-        # Normal paragraph → sentence chunks
+        # Normal paragraph -> sentence chunks
         for sent_index, sentence in enumerate(split_sentences(para)):
             chunks.append(
                 {
