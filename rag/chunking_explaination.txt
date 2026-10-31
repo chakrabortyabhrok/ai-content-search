@@ -1,0 +1,301 @@
+**What `split_post` does**
+
+It takes the full text of one blog post and returns a list of chunks. Each chunk is a dictionary that later steps can embed, search, and cite.
+
+A chunk looks like this:
+
+```python
+{
+    "text": "the actual words",
+    "para_index": 2,
+    "sent_index": 0,
+    "section": "Install",
+    "is_code": False,
+}
+```
+
+The function does three kinds of work:
+
+1. Pull code blocks out so they are never cut into sentences.
+2. Treat headings as labels, not as chunks.
+3. Turn normal paragraphs into sentence chunks, and remember which paragraph and heading each one came from.
+
+---
+
+### Start
+
+```python
+def split_post(content: str) -> list[dict]:
+```
+
+The function is named `split_post`. It takes one argument, `content`, which is the whole post as one string. The `-> list[dict]` is a type hint. It tells you (and tools) that the function is expected to return a list of dictionaries. Python does not enforce it at runtime.
+
+```python
+"""Post content in -> list of chunks out.
+Each chunk: {text, para_index, sent_index, section, is_code}"""
+```
+
+This is a docstring. It is a note for humans. It is not executed.
+
+```python
+chunks = []
+```
+
+This creates an empty list. Every chunk the function decides to keep will be appended to this list. At the end, this list is what gets returned.
+
+---
+
+### Pull code blocks out first
+
+```python
+code_blocks = []
+```
+
+Another empty list. This one will hold the real code fences, in the order they were found. Later, when the function sees a placeholder, it looks the original code back up from this list.
+
+```python
+def stash(match):
+```
+
+This defines a small function inside `split_post`. It is only used by the next line. `match` is the object `re.sub` will hand it each time it finds a code fence. That object knows the full text that matched, and where it was.
+
+```python
+code_blocks.append(match.group(0))
+```
+
+`match.group(0)` means “the entire matched text,” not a smaller group inside it. For a code fence, that is everything from the opening ` ``` ` to the closing ` ``` `, including the newlines and the code itself.
+
+`append` adds that string to the end of `code_blocks`. The first code block becomes index 0, the second becomes index 1, and so on.
+
+```python
+return f"CODEBLOCK_{len(code_blocks) - 1}"
+```
+
+This is the string that will replace the code fence in the post.
+
+`len(code_blocks)` is the number of items in the list **after** the append just happened. So after the first code block is saved, `len` is 1. After the second, it is 2.
+
+Subtracting 1 turns that count into the index of the item that was just added:
+
+- first code block: length is 1, `1 - 1 = 0`, so the placeholder is `CODEBLOCK_0`
+- second code block: length is 2, `2 - 1 = 1`, so the placeholder is `CODEBLOCK_1`
+
+The `-1` exists because list indexes start at 0, while `len` starts counting at 1. Without the `-1`, the placeholder would point one past the real item.
+
+The `f"..."` is an f-string. It builds the placeholder by putting that number into the text.
+
+```python
+content = CODE_FENCE.sub(stash, content)
+```
+
+`CODE_FENCE` is the compiled pattern ` ```.*?``` ` with `re.DOTALL`, so it can match across lines.
+
+`.sub(stash, content)` finds every match of that pattern in `content`. For each match it calls `stash`, and it replaces the matched text with whatever `stash` returns.
+
+After this line, `content` no longer contains the real code. It contains placeholders like `CODEBLOCK_0` in those spots. The real code lives in `code_blocks`. The rest of the post is still in the same order, so paragraph positions do not shift around.
+
+Why do this first: sentence splitting looks for periods. Code often has periods (`print("hi.")`, version numbers, comments). If you split the post into sentences before removing code, those periods become false sentence ends, and one code block turns into many broken chunks. Pulling code out first prevents that.
+
+---
+
+### Tracking position and section
+
+```python
+section = ""
+```
+
+This variable remembers the latest heading the function has seen. It starts as an empty string. Any text that appears before the first heading will get `"section": ""`.
+
+```python
+para_index = 0
+```
+
+This counts paragraphs as the function walks the post. It starts at 0. Headings, code blocks, and normal paragraphs all increase it, so later you can say “this chunk came from paragraph 3.”
+
+---
+
+### Walk the paragraphs
+
+```python
+for para in PARA_SPLIT.split(content):
+```
+
+`PARA_SPLIT` is the pattern `\n\s*\n`: a newline, then optional spaces, then another newline. That is a blank line.
+
+`.split(content)` cuts the post at every blank line. Each piece between blank lines is one paragraph. The loop runs once per paragraph, and that paragraph is named `para`.
+
+```python
+para = para.strip()
+```
+
+`strip()` removes spaces and newlines from the start and end of this paragraph. A paragraph that was only whitespace becomes an empty string.
+
+```python
+if not para:
+    continue
+```
+
+`not para` is true when the string is empty. `continue` skips the rest of this loop iteration and moves to the next paragraph. Blank paragraphs are ignored. They do not become chunks, and they do not increase `para_index`.
+
+---
+
+### Case 1 — heading
+
+```python
+if HEADING.match(para):
+```
+
+`HEADING` is the pattern `^#{1,6}\s+.+`. It matches only if the paragraph starts with 1 to 6 `#` characters, then whitespace, then some text.
+
+`.match` checks from the start of the string. If this paragraph is a Markdown heading, the condition is true.
+
+```python
+section = para.lstrip("#").strip()
+```
+
+`lstrip("#")` removes `#` characters from the left side only. `"## Install Django"` becomes `" Install Django"`. Then `.strip()` removes the leftover space, so `section` becomes `"Install Django"`.
+
+This heading is not turned into a chunk. It only updates the label that later sentences will carry.
+
+```python
+para_index += 1
+```
+
+The heading still counts as a paragraph for positioning. So the next real chunk gets a higher `para_index` than the text before the heading.
+
+```python
+continue
+```
+
+Skip the rest of this loop iteration. Do not treat the heading as code, and do not send it through `split_sentences`.
+
+---
+
+### Case 2 — the paragraph is a code placeholder
+
+```python
+if re.fullmatch(r"CODEBLOCK_\d+", para):
+```
+
+`fullmatch` means the **entire** paragraph must match the pattern. `CODEBLOCK_\d+` means the literal text `CODEBLOCK_`, then one or more digits.
+
+This is true for a paragraph that is exactly `CODEBLOCK_0` or `CODEBLOCK_2`. It is false if normal text merely contains those words.
+
+```python
+idx = int(para.split("_")[1])
+```
+
+`para.split("_")` cuts the string on the underscore. `"CODEBLOCK_2"` becomes `["CODEBLOCK", "2"]`.
+
+`[1]` takes the second item, which is the string `"2"`.
+
+`int(...)` turns that string into the number `2`. That number is the index into `code_blocks`.
+
+```python
+chunks.append(
+    {
+        "text": code_blocks[idx],
+        "para_index": para_index,
+        "sent_index": 0,
+        "section": section,
+        "is_code": True,
+    }
+)
+```
+
+This adds one dictionary to `chunks`.
+
+- `"text"` is the original code fence that was stashed, looked up by `idx`. The whole block is kept as one string. It is not split into sentences.
+- `"para_index"` is the current paragraph number.
+- `"sent_index"` is `0` because a code block is not a list of sentences. There is only one piece.
+- `"section"` is whatever heading was most recently seen.
+- `"is_code"` is `True` so later code can treat this chunk differently (for example, skip embedding it the same way, or cite it as a block).
+
+```python
+para_index += 1
+```
+
+This code block counts as a paragraph, so the counter moves forward.
+
+```python
+continue
+```
+
+Skip the normal-sentence path. The code is already stored.
+
+---
+
+### Case 3 — normal paragraph
+
+```python
+for sent_index, sentence in enumerate(split_sentences(para)):
+```
+
+This only runs if the paragraph was not empty, not a heading, and not a code placeholder.
+
+`split_sentences(para)` returns a list of sentence strings for this paragraph.
+
+`enumerate` walks that list and also gives a number for each item, starting at 0. So the first sentence has `sent_index` 0, the second has 1, and so on. `sentence` is the text of that one sentence.
+
+```python
+chunks.append(
+    {
+        "text": sentence,
+        "para_index": para_index,
+        "sent_index": sent_index,
+        "section": section,
+        "is_code": False,
+    }
+)
+```
+
+Each sentence becomes its own chunk dictionary.
+
+- `"text"` is that sentence.
+- `"para_index"` is the paragraph this sentence came from. Every sentence in the same paragraph shares this number.
+- `"sent_index"` is the position of this sentence inside that paragraph.
+- `"section"` is the latest heading.
+- `"is_code"` is `False` because this is normal prose.
+
+```python
+para_index += 1
+```
+
+After all sentences of this paragraph have been added, the paragraph counter moves to the next paragraph.
+
+```python
+return chunks
+```
+
+The loop is finished. The function returns the list of chunk dictionaries.
+
+---
+
+### How one post becomes chunks
+
+Take this post:
+
+```text
+## Install
+
+Run the command. It is simple.
+
+```python
+print("hi.")
+```
+
+## Next
+
+One more sentence here. Fig. 2 shows it.
+```
+
+What happens:
+
+1. The code fence is stashed. The post text now has `CODEBLOCK_0` where the code was.
+2. `## Install` is a heading. `section` becomes `"Install"`. It is not a chunk. `para_index` becomes 1.
+3. `"Run the command. It is simple."` is normal text. `split_sentences` turns it into two sentences. Two chunks are added, both with `section` `"Install"`, `para_index` 1, `sent_index` 0 and 1, `is_code` false.
+4. `CODEBLOCK_0` is recognized. One chunk is added with the real code, `is_code` true, `section` still `"Install"`.
+5. `## Next` updates `section` to `"Next"`. Not a chunk.
+6. The last paragraph becomes sentence chunks under `"Next"`. `Fig.` is an abbreviation, so `split_sentences` keeps that sentence together; short leftovers get glued there too.
+
+The list that comes back is what embedding, retrieval, and citations will use. This function does not talk to the database or the model. It only decides the units and their addresses.

@@ -1,4 +1,9 @@
+#Files
+chunking_explaination.py
+
+#Environment
 .env
+
 # Virtual environment
 env/
 venv/
