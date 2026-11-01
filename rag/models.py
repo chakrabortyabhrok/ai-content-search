@@ -1,5 +1,6 @@
 from django.db import models
 from blog.models import Post
+from pgvector.django import VectorField, HnswIndex
 
 
 class Sentence(models.Model):
@@ -16,6 +17,8 @@ class Sentence(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    embedding = VectorField(dimensions=1024, null=True, blank=True)
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -23,7 +26,16 @@ class Sentence(models.Model):
                 name="uniq_sentence_address",
             )
         ]
+        indexes = [
+            HnswIndex(
+                name="sentence_embedding_hnsw",
+                fields=["embedding"],
+                m=16,
+                ef_construction=64,
+                opclasses=["vector_cosine_ops"],
+            )
+        ]
         ordering = ["para_index", "sent_index"]
 
     def __str__(self):
-        return f"{self.post.title}: para:{self.para_index}se{self.sent_index}"
+        return f"{self.post.title}: p{self.para_index}-s{self.sent_index}"
