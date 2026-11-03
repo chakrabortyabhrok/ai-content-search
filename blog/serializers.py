@@ -54,6 +54,7 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ["name", "slug"]
 
+
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author

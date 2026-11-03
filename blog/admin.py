@@ -40,6 +40,7 @@ class SentenceAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+
 @admin.action(description="Reindex selected posts (RAG)")
 def reindex_posts(modeladmin, request, queryset):
     posts = sentences = 0
