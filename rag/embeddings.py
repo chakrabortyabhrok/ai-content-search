@@ -1,7 +1,7 @@
 """
 The ONLY file in this project that talks to Voyage_API.
 If ever switched embedding models, this file is the only job.
-Chunk dicts → Vectors
+Chunk dicts -> Vectors
 """
 
 import time

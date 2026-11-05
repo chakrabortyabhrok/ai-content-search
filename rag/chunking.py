@@ -1,4 +1,4 @@
-"""Post text → List of chunk dicts"""
+"""Post text -> List of chunk dicts"""
 
 import re
 

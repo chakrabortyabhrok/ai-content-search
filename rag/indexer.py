@@ -1,6 +1,7 @@
 """
 The ONLY code in this project that writes Sentence rows.
-chunk -> embed -> store, for one post.
+RUNS THE PIPELINE:
+Chunk -> Embed -> Store, for one post.
 """
 
 from django.db import transaction
