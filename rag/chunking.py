@@ -1,3 +1,5 @@
+"""Post text → List of chunk dicts"""
+
 import re
 
 ABBREVIATIONS = {
