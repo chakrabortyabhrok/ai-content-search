@@ -1,5 +1,5 @@
 """
-The single door: the ONLY code in this project that writes Sentence rows.
+The ONLY code in this project that writes Sentence rows.
 chunk -> embed -> store, for one post.
 """
 
@@ -14,25 +14,22 @@ from rag.models import Sentence
 def index_post(post: Post) -> int:
     """
     (Re)index one post from scratch. Returns the number of sentences stored.
-    Safe to call repeatedly: each run wipes this post's old sentences first.
+    Safe to call repeatedly, each run wipes this post's old sentences first.
     """
-    # 1. Chunk — pure function, instant, no API.
+
     chunks = split_post(post.content)
 
-    # 2. Embed — slow, network calls. Deliberately OUTSIDE the transaction:
-    #    never hold database locks open while waiting on an API.
-    vectors = embed_post_chunks(chunks, post.title)
+    """ Deliberately OUTSIDE the transaction: If you put the API call inside the transaction, you would freeze your database for seconds while waiting for the API. Other users trying to read/write would be blocked. By doing it outside, the database stays fast and responsive. """
+    vectors = embed_post_chunks(chunks, post.title) 
 
-    # Seatbelt: zip() silently stops at the shorter list. Without this
-    # check, a mismatch would store misaligned rows and tell no one.
+    """ Seatbelt: Without this check, a mismatch would store misaligned rows and tell no one. """
     if len(vectors) != len(chunks):
         raise RuntimeError(
             f"Embedding mismatch for '{post.title}': "
             f"{len(chunks)} chunks but {len(vectors)} vectors."
         )
 
-    # 3. Store — fast, all-or-nothing. A reader asking a question mid-reindex
-    #    sees the complete old index or the complete new one. Never half.
+    """ Store — fast, all-or-nothing. A reader asking a question mid-reindex sees the complete old index or the complete new one. Never half. """
     with transaction.atomic():
         Sentence.objects.filter(post=post).delete()
         Sentence.objects.bulk_create(
