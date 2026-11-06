@@ -40,7 +40,7 @@ def index_post(post: Post) -> int:
                     para_index=c["para_index"],
                     sent_index=c["sent_index"],
                     text=c["text"],  # clean sentence — no [Article...] prefix
-                    section=c["section"],
+                    section=(c["section"] or "")[:200],
                     is_code=c["is_code"],
                     embedding=v,
                 )

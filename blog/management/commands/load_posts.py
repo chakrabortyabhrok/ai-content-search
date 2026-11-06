@@ -30,7 +30,9 @@ class Command(BaseCommand):
             # Parse front matter
             match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", text, re.DOTALL)
             if not match:
-                self.stdout.write(self.style.WARNING(f"Skipped (no front matter): {path.name}"))
+                self.stdout.write(
+                    self.style.WARNING(f"Skipped (no front matter): {path.name}")
+                )
                 continue
 
             front, body = match.groups()
@@ -43,7 +45,9 @@ class Command(BaseCommand):
             title = meta.get("title")
             category_name = meta.get("category", "Uncategorized")
             if not title:
-                self.stdout.write(self.style.WARNING(f"Skipped (no title): {path.name}"))
+                self.stdout.write(
+                    self.style.WARNING(f"Skipped (no title): {path.name}")
+                )
                 continue
 
             slug = slugify(title)
