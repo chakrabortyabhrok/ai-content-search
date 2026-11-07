@@ -37,7 +37,7 @@ def embed_post_chunks(chunks: list[dict], post_title: str) -> list[list[float]]:
         return []
 
     # [[c1, c2, c3]] = ONE document, pre-split into chunks.
-    
+
     inputs = [[_with_context(c, post_title) for c in chunks]]
 
     for attempt in range(1, MAX_RETRIES + 1):

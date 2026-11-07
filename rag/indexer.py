@@ -21,7 +21,7 @@ def index_post(post: Post) -> int:
     chunks = split_post(post.content)
 
     """ Deliberately OUTSIDE the transaction: If you put the API call inside the transaction, you would freeze your database for seconds while waiting for the API. Other users trying to read/write would be blocked. By doing it outside, the database stays fast and responsive. """
-    vectors = embed_post_chunks(chunks, post.title) 
+    vectors = embed_post_chunks(chunks, post.title)
 
     """ Seatbelt: Without this check, a mismatch would store misaligned rows and tell no one. """
     if len(vectors) != len(chunks):

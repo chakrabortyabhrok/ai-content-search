@@ -2,6 +2,7 @@ from django.db import models
 from blog.models import Post
 from pgvector.django import VectorField, HnswIndex
 
+
 class Sentence(models.Model):
     post = models.ForeignKey(
         Post,
