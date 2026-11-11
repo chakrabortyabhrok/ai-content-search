@@ -15,10 +15,10 @@ def retrieve(question: str, k: int = DEFAULT_K) -> list[dict]:
     """
     Find the k sentences whose meaning is closest to `question`.
 
-    Returns a list of dicts, closest first. Each dict should carry enough
-    to (a) show the text and (b) cite where it came from, e.g.:
-        {text, distance, post_id, post_title, post_slug,
-        section, para_index, sent_index, is_code}
+    Returns a list of dicts, closest first. Each dict carries the hit, its
+    neighbours in the same paragraph, and enough to cite where it came from:
+        {hit, before, after, section, post_title, post_slug,
+         distance, para_index, sent_index}
     """
 
     if not question or not question.strip():
@@ -27,8 +27,7 @@ def retrieve(question: str, k: int = DEFAULT_K) -> list[dict]:
     query_vector = embed_query(question.strip())
 
     rows = (
-        Sentence.objects
-        .filter(post__status="published", embedding__isnull=False)
+        Sentence.objects.filter(post__status="published", embedding__isnull=False)
         .annotate(distance=CosineDistance("embedding", query_vector))
         .order_by("distance")
         .select_related("post")[:k]
@@ -36,6 +35,20 @@ def retrieve(question: str, k: int = DEFAULT_K) -> list[dict]:
 
     return [_to_dict(row) for row in rows]
 
+
+def _neighbour_text(sentence: Sentence, offset: int) -> str | None:
+    """
+    Text of the sentence `offset` places away in the SAME paragraph, or None.
+    offset = -1 -> the sentence before, offset = +1 -> the sentence after.
+    """
+
+    neighbour = Sentence.objects.filter(
+        post_id=sentence.post_id,
+        para_index=sentence.para_index,
+        sent_index=sentence.sent_index + offset,
+    ).first()
+
+    return neighbour.text if neighbour else None
 
 
 def _to_dict(sentence: Sentence) -> dict:
@@ -47,14 +60,13 @@ def _to_dict(sentence: Sentence) -> dict:
     """
 
     return {
-        "text": sentence.text,
-        "distance": sentence.distance,
-        "post_id": sentence.post_id,
+        "hit": sentence.text,
+        "before": _neighbour_text(sentence, -1),
+        "after": _neighbour_text(sentence, +1),
+        "section": sentence.section,
         "post_title": sentence.post.title,
         "post_slug": sentence.post.slug,
-        "section": sentence.section,
+        "distance": sentence.distance,  # the hit's score only
         "para_index": sentence.para_index,
         "sent_index": sentence.sent_index,
-        "is_code": sentence.is_code,
     }
-    
