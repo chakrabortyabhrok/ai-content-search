@@ -10,7 +10,6 @@ from rag.models import Sentence
 
 DEFAULT_K = 5  # how many sentences to return when the caller doesn't say
 
-
 def retrieve(question: str, k: int = DEFAULT_K) -> list[dict]:
     """
     Find the k sentences whose meaning is closest to `question`.
