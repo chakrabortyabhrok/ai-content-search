@@ -50,7 +50,6 @@ def _neighbour_text(sentence: Sentence, offset: int) -> str | None:
 
     return neighbour.text if neighbour else None
 
-
 def _to_dict(sentence: Sentence) -> dict:
     """
     One Sentence row (with its annotated distance) -> one plain dict.
