@@ -1,18 +1,6 @@
 def format_citations(hits: list[dict]) -> list[str]:
     """
     Turn retrieval hits into unique, ordered citation strings.
-
-    Each string should contain:
-    - post title
-    - section
-    - position (para_index, sent_index)
-    - the exact sentence
-    - a link like /posts/<slug>/
-
-    Rules:
-    - same post + para_index + sent_index -> keep only one
-    - same post, different sentence       -> keep both
-    - lowest distance (strongest) first
     """
 
     citations = []
@@ -41,17 +29,3 @@ def format_citations(hits: list[dict]) -> list[str]:
 
     return citations
 
-
-# Shell test without the API — fake hits by hand:
-#   a = {"hit": "A", "post_slug": "p1", "para_index": 0, "sent_index": 0,
-#        "post_title": "T", "section": "S", "distance": 0.3}
-#   b = dict(a, distance=0.5)                 # same sentence, worse score
-#   c = dict(a, sent_index=1, distance=0.4)   # same post, different sentence
-#   for line in format_citations([b, c, a]): print(line)
-#   -> 2 citations: [1] is a, [2] is c. b is dropped.
-#
-# Real test:
-#   from rag.retrieval import retrieve
-#   from rag.citations import format_citations
-#   for c in format_citations(retrieve("How is pgvector used for similarity search?")):
-#       print(c)
