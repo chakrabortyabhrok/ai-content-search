@@ -10,9 +10,10 @@ from rag.models import Sentence
 
 DEFAULT_K = 5  # how many sentences to return when the caller doesn't say
 
+
 def retrieve(question: str, k: int = DEFAULT_K) -> list[dict]:
     """
-    Find the k sentences whose meaning is closest to `question`.
+    Find the k sentences whose meaning is 'closest to question'.
 
     Returns a list of dicts, closest first. Each dict carries the hit, its
     neighbours in the same paragraph, and enough to cite where it came from:
@@ -48,6 +49,7 @@ def _neighbour_text(sentence: Sentence, offset: int) -> str | None:
     ).first()
 
     return neighbour.text if neighbour else None
+
 
 def _to_dict(sentence: Sentence) -> dict:
     """

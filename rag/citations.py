@@ -28,4 +28,3 @@ def format_citations(hits: list[dict]) -> list[str]:
         )
 
     return citations
-
