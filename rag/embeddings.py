@@ -17,7 +17,6 @@ OUTPUT_DIMENSION = 1024  # must match VectorField(dimensions=1024) in models.py
 MAX_RETRIES = 3
 RETRY_WAIT_SECONDS = 2  # waits 2s, then 4s
 
-
 def _with_context(chunk: dict, post_title: str) -> str:
     """
     Stamp the post title + section onto a chunk - for embedding only.
