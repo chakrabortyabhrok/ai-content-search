@@ -9,7 +9,7 @@ from pgvector.django import CosineDistance
 from rag.embeddings import embed_query
 from rag.models import Sentence
 
-DEFAULT_K = 5  # how many sentences to return when the caller doesn't say
+DEFAULT_K = 8  # how many sentences to return when the caller doesn't say
 
 # HNSW is APPROXIMATE. With pgvector's default (ef_search=40) the staging-password
 # question returned "Rate-limit login and chat." (distance 0.768) and missed the

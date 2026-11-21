@@ -18,7 +18,7 @@ from rest_framework import status
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
 
 NOT_FOUND = "not found"  # exact string: tests and Thursday's eval compare to this
-K = 5
+K = 8
 
 MAX_DISTANCE = 0.80
 
