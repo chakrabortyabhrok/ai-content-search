@@ -30,7 +30,7 @@ def index_post(post: Post) -> int:
             f"{len(chunks)} chunks but {len(vectors)} vectors."
         )
 
-    """ Store — fast, all-or-nothing. A reader asking a question mid-reindex sees the complete old index or the complete new one. Never half. """
+    """ Store - fast, all-or-nothing. A reader asking a question mid-reindex sees the complete old index or the complete new one. Never half. """
     with transaction.atomic():
         Sentence.objects.filter(post=post).delete()
         Sentence.objects.bulk_create(
@@ -39,7 +39,7 @@ def index_post(post: Post) -> int:
                     post=post,
                     para_index=c["para_index"],
                     sent_index=c["sent_index"],
-                    text=c["text"],  # clean sentence — no [Article...] prefix
+                    text=c["text"],  # clean sentence - no [Article...] prefix
                     section=(c["section"] or "")[:200],
                     is_code=c["is_code"],
                     embedding=v,

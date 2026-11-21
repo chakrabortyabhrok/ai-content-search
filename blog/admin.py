@@ -30,7 +30,7 @@ class SentenceAdmin(admin.ModelAdmin):
     def has_embedding(self, obj):
         return obj.embedding is not None
 
-    # Look, don't touch — all three write paths closed.
+    # Look, don't touch - all three write paths closed.
     def has_add_permission(self, request):
         return False
 

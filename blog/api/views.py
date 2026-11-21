@@ -6,6 +6,12 @@ from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from ..filters import CategoryFilterSet
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rag.answer import AskError, ask
+
+MAX_QUESTION_LENGTH = 500
 
 class StandardPagnition(PageNumberPagination):
     page_size = 5
@@ -31,6 +37,34 @@ class PostViewSet(ModelViewSet):
             .select_related('category', 'author')
             .prefetch_related('tags')
         )
+
+    # POST /api/posts/ask_ai/  {"question": "..."} -> {"answer": ..., "sources": [...]}
+    # Open to anyone: no REST_FRAMEWORK block in settings, so DRF defaults to AllowAny.
+    # Thin on purpose: validate -> ask() -> Response. All RAG logic lives in rag/answer.py.
+    @action(detail=False, methods=["post"], url_path="ask_ai")
+    def ask_ai(self, request):
+        question = request.data.get("question")
+
+        # isinstance first: {"question": 123} would crash on .strip() -> 500
+        if not isinstance(question, str) or not question.strip():
+            return Response(
+                {"error": "Field 'question' is required and must be non-empty text."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        question = question.strip()
+        if len(question) > MAX_QUESTION_LENGTH:
+            return Response(
+                {"error": f"Question too long (max {MAX_QUESTION_LENGTH} characters)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            result = ask(question)
+        except AskError as exc:
+            # 502 Bad Gateway: OUR server is fine, a service we depend on failed.
+            return Response({"error": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        return Response(result)
 
 
 class CategoryViewSet(ModelViewSet):

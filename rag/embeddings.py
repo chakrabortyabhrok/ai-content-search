@@ -6,6 +6,8 @@ Chunk dicts -> Vectors
 
 import time
 import voyageai
+from rest_framework import status
+from rest_framework.response import Response
 
 vo = voyageai.Client()  # reads VOYAGE_API_KEY from the environment
 
@@ -18,7 +20,7 @@ RETRY_WAIT_SECONDS = 2  # waits 2s, then 4s
 
 def _with_context(chunk: dict, post_title: str) -> str:
     """
-    Stamp the post title + section onto a chunk — for embedding only.
+    Stamp the post title + section onto a chunk - for embedding only.
 
     Why: our chunker keeps headings OUT of the chunk stream (they live in
     the `section` field). Without this, the model never sees them.
@@ -59,13 +61,19 @@ def embed_query(question: str) -> list[float]:
     """
     A user question -> one embedding.
 
-    Same model, but input_type="query" — the model is trained with two
+    Same model, but input_type="query" - the model is trained with two
     sides to its embedding space.
     """
-    result = vo.contextualized_embed(
-        model=MODEL,
-        inputs=[question],
-        input_type="query",
-        output_dimension=OUTPUT_DIMENSION,
-    )
-    return result.results[0].embeddings[0]
+    try:
+        result = vo.contextualized_embed(
+            model=MODEL,
+            inputs=[question],
+            input_type="query",
+            output_dimension=OUTPUT_DIMENSION,
+        )
+        return result.results[0].embeddings[0]
+    except Exception as e:
+        return Response(
+            {"error": "Retrieval service unavailable"},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
