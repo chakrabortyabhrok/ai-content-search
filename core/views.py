@@ -1,6 +1,16 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import render
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
 from .forms import ContactForm
+
+User = get_user_model()
 
 def home_page(request):
     return render(request, 'core/home.html')
@@ -28,6 +38,28 @@ def services_page(request):
 
 def dynamic_year(request, year):
     return HttpResponse(f"<h1>Year: {year}</h1><p>This is a dynamic page for {year}</p>")
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def register(request):
+    username = request.data.get("username", "").strip()
+    email = request.data.get("email", "").strip()
+    password = request.data.get("password", "")
+
+    if not username or not password:
+        return Response({"error": "username and password required"}, status=400)
+
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "username taken"}, status=400)
+
+    try:
+        validate_password(password)
+    except ValidationError as e:
+        return Response({"error": e.messages}, status=400)
+
+    user = User.objects.create_user(username=username, email=email, password=password)
+    return Response({"id": user.id, "username": user.username}, status=201)
+
 
 def contact_page(request):
     if request.method == 'POST':
