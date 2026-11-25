@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -63,3 +65,47 @@ class RegisterAndLoginTests(TestCase):
 
         self.assertEqual(response.status_code, 401)
 
+
+    # --- Week 4 Day 3: token refresh -------------------------------------------
+
+    def test_refresh_with_valid_token_returns_new_access(self):
+        User.objects.create_user(**self.user_data)
+        login = self.client.post(
+            "/api/token/",
+            {"username": "maya", "password": "correct-horse-9"},
+            format="json",
+        )
+
+        response = self.client.post(
+            "/api/token/refresh/", {"refresh": login.data["refresh"]}, format="json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.data)
+
+    def test_refresh_with_invalid_token_is_401(self):
+        response = self.client.post(
+            "/api/token/refresh/", {"refresh": "not-a-real-token"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, 401)
+
+    # --- Week 4 Day 3: a real token unlocks ask_ai ------------------------------
+
+    def test_ask_ai_with_bearer_token_is_allowed(self):
+        User.objects.create_user(**self.user_data)
+        login = self.client.post(
+            "/api/token/",
+            {"username": "maya", "password": "correct-horse-9"},
+            format="json",
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['access']}")
+
+        fake = {"answer": "river-stone-19 [1]", "sources": []}
+        with patch("blog.api.views.ask", return_value=fake):  # no Voyage/OpenAI
+            response = self.client.post(
+                "/api/posts/ask_ai/", {"question": "staging password?"}, format="json"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, fake)

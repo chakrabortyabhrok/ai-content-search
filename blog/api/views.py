@@ -8,6 +8,7 @@ from rest_framework.filters import SearchFilter
 from ..filters import CategoryFilterSet
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rag.answer import AskError, ask
 
@@ -39,9 +40,16 @@ class PostViewSet(ModelViewSet):
         )
 
     # POST /api/posts/ask_ai/  {"question": "..."} -> {"answer": ..., "sources": [...]}
-    # Open to anyone: no REST_FRAMEWORK block in settings, so DRF defaults to AllowAny.
-    # Thin on purpose: validate -> ask() -> Response. All RAG logic lives in rag/answer.py.
-    @action(detail=False, methods=["post"], url_path="ask_ai")
+    # Logged-in users only: needs "Authorization: Bearer <access token>" from /api/token/.
+    # No/invalid token -> 401 (JWTAuthentication is the only auth class in settings).
+    # The permission is on THIS action only, so GET /api/posts/ stays public.
+    # On purpose: validate -> ask() -> Response. All RAG logic lives in rag/answer.py.
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="ask_ai",
+        permission_classes=[IsAuthenticated],
+    )
     def ask_ai(self, request):
         question = request.data.get("question")
 

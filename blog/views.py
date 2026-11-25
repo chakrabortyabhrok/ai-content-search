@@ -38,7 +38,9 @@ def blog_list(request):
 
 def post_detail(request, slug):
     try:
-        post = Post.objects.get(slug=slug)
+        # status is PART of the lookup: a draft slug finds nothing -> DoesNotExist -> 404.
+        # 404: a 403 would confirm to strangers that the draft exists.
+        post = Post.objects.get(slug=slug, status="published")
         return render(request, "blog/post_detail.html", {"post": post})
     except Post.DoesNotExist:
         return HttpResponse("404 - Post not found", status=404)

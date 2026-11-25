@@ -11,6 +11,7 @@ Run:  pytest rag/tests/test_ask.py -v
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from rag.answer import NOT_FOUND
@@ -33,12 +34,37 @@ FAKE_HIT = {
 
 @pytest.fixture
 def client():
-    return APIClient()
+    """A client that is already logged in (ask_ai requires IsAuthenticated)."""
+    api_client = APIClient()
+    # force_authenticate skips the JWT check entirely: every request from this
+    # client counts as `user`. The user is never saved, so still no database.
+    api_client.force_authenticate(user=get_user_model()(username="tester"))
+    return api_client
 
 
 def ask_ai(client, body):
     """POST a JSON body to the endpoint."""
     return client.post(URL, body, format="json")
+
+
+# 0. Auth: no token -> 401, and no paid work happens
+
+def test_no_token_is_401():
+    with patch("blog.api.views.ask") as ask:
+        response = APIClient().post(URL, {"question": "Anything?"}, format="json")
+
+    assert response.status_code == 401
+    ask.assert_not_called()
+
+
+def test_invalid_token_is_401():
+    unauth = APIClient()
+    unauth.credentials(HTTP_AUTHORIZATION="Bearer not-a-real-token")
+    with patch("blog.api.views.ask") as ask:
+        response = unauth.post(URL, {"question": "Anything?"}, format="json")
+
+    assert response.status_code == 401
+    ask.assert_not_called()
 
 
 # 1. Happy path
