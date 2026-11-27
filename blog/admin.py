@@ -1,7 +1,7 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import Count
 from .models import Post, Category, Tag, Author
-from rag.indexer import index_post
+from rag.indexer import delete_sentences, index_post
 from rag.models import Sentence
 
 
@@ -84,6 +84,39 @@ class PostAdmin(admin.ModelAdmin):
         ("Status", {"fields": ("status",), "classes": ("collapse",)}),
         ("Tags", {"fields": ("tags",)}),
     ]
+
+    def save_model(self, request, obj, form, change):
+        """Save the post, then keep its sentences in sync. Runs once per save."""
+        super().save_model(request, obj, form, change)
+
+        if obj.status != "published":
+            deleted = delete_sentences(obj)
+            self.message_user(request, f"Draft: removed {deleted} sentences from search.")
+            return
+
+        try:
+            count = index_post(obj)
+        except Exception as error:
+            # The post is still saved. Only the search index failed (example - Voyage limit).
+            self.message_user(
+                request,
+                f"Post saved, but indexing failed: {error}. "
+                "Try 'Reindex selected posts' from the post list.",
+                level=messages.WARNING,
+            )
+            return
+
+        self.message_user(request, f"Indexed {count} sentences for search.")
+
+    def get_deleted_objects(self, objs, request):
+        """
+        Deleting a post also deletes its sentences (CASCADE). SentenceAdmin says
+        "no delete permission", which would block deleting the POST too (403).
+        Sentences go with their post automatically, so drop that one check.
+        """
+        deleted, counts, perms_needed, protected = super().get_deleted_objects(objs, request)
+        perms_needed.discard(Sentence._meta.verbose_name)
+        return deleted, counts, perms_needed, protected
 
 
 @admin.register(Tag)

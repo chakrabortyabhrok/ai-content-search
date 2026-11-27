@@ -50,3 +50,9 @@ def index_post(post: Post) -> int:
         )
 
     return len(chunks)
+
+
+def delete_sentences(post: Post) -> int:
+    """Remove all of this post's sentences. Returns how many were deleted."""
+    deleted_count, _ = Sentence.objects.filter(post=post).delete()
+    return deleted_count
